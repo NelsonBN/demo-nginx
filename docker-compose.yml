@@ -1,0 +1,73 @@
+version: '3.9'
+
+
+networks:
+  demo-nginx:
+    driver: bridge
+
+
+services:
+
+  api-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: technobre/demo-api-to-nginx:latest
+    container_name: demo-api-1
+    ports:
+      - "8081:80"
+    networks:
+      - demo-nginx
+
+  api-2:
+    image: technobre/demo-api-to-nginx:latest
+    container_name: demo-api-2
+#    ports:
+#      - "8082:80"
+    networks:
+      - demo-nginx
+    depends_on:
+    - api-1
+
+
+  nginx-proxy:
+    image: nginx:latest
+    container_name: demo-nginx-proxy
+    ports:
+      - "9001:80"
+    volumes:
+      - ./src/nginx/nginx-proxy.conf:/etc/nginx/nginx.conf
+      - ./src/www:/var/www/html
+    networks:
+      - demo-nginx
+    depends_on:
+    - api-1
+    - api-2
+
+  nginx-loadbalancer:
+    image: nginx:latest
+    container_name: demo-nginx-loadbalancer
+    ports:
+      - "9002:80"
+    volumes:
+      - ./src/nginx/nginx-loadbalancer.conf:/etc/nginx/nginx.conf
+      - ./src/www:/var/www/html
+    networks:
+      - demo-nginx
+    depends_on:
+    - api-1
+    - api-2
+
+  nginx-secure:
+    image: nginx:latest
+    container_name: demo-nginx-secure
+    ports:
+      - "9003:80"
+    volumes:
+      - ./src/nginx/nginx-secure.conf:/etc/nginx/nginx.conf
+      - ./src/www:/var/www/html
+      - ./src/nginx/.htpasswd:/etc/nginx/.htpasswd
+    networks:
+      - demo-nginx
+    depends_on:
+    - api-1
