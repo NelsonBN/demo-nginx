@@ -71,3 +71,14 @@ services:
       - demo-nginx
     depends_on:
     - api-1
+
+  nginx-static-website:
+    image: nginx:latest
+    container_name: demo-nginx-static-website
+    ports:
+      - "8082:80"
+    volumes:
+      - ./src/nginx/nginx-static-website.conf:/etc/nginx/nginx.conf
+      - ./src/www:/var/www/html
+    networks:
+      - demo-nginx
